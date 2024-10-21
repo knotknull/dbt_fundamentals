@@ -1,0 +1,23 @@
+
+
+
+setup dbt cloud
+
+Quickstart to setup dbt Cloud and ...  
+NOTE:  need S3 access for dbtcloud
+
+#Quickstart BigQuery
+https://docs.getdbt.com/quickstarts/bigquery?step=1
+
+#Quickstart Databricks
+https://docs.getdbt.com/quickstarts/databricks?step=1
+
+#Quickstart Snowflake
+https://docs.getdbt.com/quickstarts/snowflake?step=1
+
+#Quickstart Redshift
+https://docs.getdbt.com/docs/get-started/getting-started/getting-set-up/setting-up-redshift
+
+#Load Data
+
+

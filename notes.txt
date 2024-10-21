@@ -1,0 +1,164 @@
+From DBT Training course:
+https://learn.getdbt.com/courses/dbt-fundamentals
+
+
+
+
+5 key areas
+- sources
+- models
+- tests
+- docs
+- deployment
+
+
+
+Data Teams: 
+    Data Engineers
+        - build data infra
+        - manage ETL / ELT process
+        - Tools:  SQL, Java / Python, Orchestration
+    Data Analyst:
+        - Dashboards
+        - Reporting
+        - Exel, SQL
+
+
+NOTE: Cloud changed ETL to ELT
+
+
+
+Analytics Engineer: 
+    - Raw data to BI Layer
+        - in charge of the "T"
+    - Delivers dashboards to stakeholders
+
+
+
+
+dbt in the Modern Data Stack
+                                                                  +-----> [BI Tools]
+                                    [dtb transformation]          |
+[data sources] ---> [ Loaders ] ---> [ data platforms ] ----------+-----> [ML Model]
+                    (airbytes?)                                   |
+                                                                  +-----> [Operational Analytics]
+
+
+dbt workflow 
+
+        develop -> test / document -> deploy
+
+- modular code in models as SQL select statements 
+    - no DDL, DML, etc.
+- build dependencies between model to transform over time
+    i.e. using ref etc.
+
+
+DAG (Directed Acyclical Graph) built up from source data to use case
+    - develop
+    - test:      unique pkey, non-null, etc.
+    - document:  document system while developing it out
+    - deploy:    deploy via schedule on dbt cloud
+
+
+    Load Tables         Stage Tables           Final tables
+   ---------------    ---------------       ---------------
+
+jaffle_shop.customers  --> customers        ------------------>  dim_customers
+                                                                    ^
+jaffle_shop.orders     --> stg_orders      --> fct_orders ----------+
+stripe.payment         --> stg_payments    -+  
+
+
+
+dbt run:  from left to right, will build each model (load, stage, final)
+
+
+
+ex. 
+models > staging > stripe > src_stripe.yml:
+
+version: 2
+
+sources: 
+    - name: stripe
+      database: raw
+      tables: 
+        - name: payment
+
+
+Can source the load tables via a source macro, seen in stg_payments.sql:
+select 
+    id as payment_id
+    orderid as order_id, 
+    paymentmethod as payment_method, 
+    status, 
+    -- amount is soted in cents, convert to dollars
+    amount / 100 as amount, 
+    created as created_at 
+from {{ source('stripe', 'payment') }}    
+
+and then to fct_orders.sql: 
+
+with orders as {
+    select * from {{ ref('stg_orders' )}}
+},
+
+with payments as {
+    select * from {{ ref('stg_payments' )}}
+},
+...........
+
+## test and docs 
+> models > staging > jaffle_shop > stg_jaffle_shop.yml
+
+models: 
+  - name: stg_customers
+    description: Staged customer data form jaffle shop app   ## NOTE: descriptions act as documentation
+    columns: 
+      - name: customer_id
+        description: The primary key for customers.          ## NOTE: descriptions act as documentation
+        tests: 
+          - unique                      ## NOTE:  specifying tests for unique and not null
+          - not_null  
+
+
+dbt test:  will test models along with the tests associated with fields / models
+
+dbt docs generate: builds a documentation site on models / tables / columns etc. 
+
+
+"view lineage graph" : shows lineage upstream / downstram of a model
+NOTE: this is within documentaion
+
+
+dbt cloue > deploy > environments
+
+"deployment environment: can configure jobs
+
+
+job name: 
+....
+
+command:  dbt run or dbt test or dbt build
+NOTE: dbt build is combo of run and test
+
+Triggers: 
+[x] run on schedule 
+[x] schedule days 
+[x] Sunday [x] Monday [x] Tuesday [x] Wednesday [x] Thursday [x] Friday [x] Saturday 
+
+timing 
+[x] every 1 hours starting at midnight UTC
+
+
+
+
+setup dbt cloud
+LAST HERE
+https://learn.getdbt.com/learn/course/dbt-fundamentals/set-up-dbt-cloud-55min/getting-started?page=2
+
+see dbt_cloud_setup.txt
+
+
+.
