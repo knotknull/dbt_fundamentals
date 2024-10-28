@@ -155,10 +155,16 @@ timing
 
 
 setup dbt cloud
-LAST HERE
 https://learn.getdbt.com/learn/course/dbt-fundamentals/set-up-dbt-cloud-55min/getting-started?page=2
-
 see dbt_cloud_setup.txt
 
+
+
+started to do dbt core setup:
+
+MAP
+LAST HERE 
+## add tests to your model
+https://docs.getdbt.com/guides/manual-install?step=12
 
 .
