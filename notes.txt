@@ -38,8 +38,8 @@ Analytics Engineer:
 
 dbt in the Modern Data Stack
                                                                   +-----> [BI Tools]
-                                    [dtb transformation]          |
-[data sources] ---> [ Loaders ] ---> [ data platforms ] ----------+-----> [ML Model]
+                                     [dbt transformation]         |
+[data sources] ---> [ Loaders ] ---> [  data platforms  ] --------+-----> [ML Model]
                     (airbytes?)                                   |
                                                                   +-----> [Operational Analytics]
 
@@ -132,7 +132,7 @@ dbt docs generate: builds a documentation site on models / tables / columns etc.
 NOTE: this is within documentaion
 
 
-dbt cloue > deploy > environments
+dbt cloud > deploy > environments
 
 "deployment environment: can configure jobs
 

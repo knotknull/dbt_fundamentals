@@ -1,0 +1,190 @@
+From Quickstart Install dbt Core manually
+https://docs.getdbt.com/guides/manual-install?step=1
+
+
+
+## Install dbt core
+## NOTE: This is done via pip and asks for drivers to install as well
+##       Development should be done in venv.  
+https://docs.getdbt.com/docs/core/installation-overview
+
+## Setup BigQuery below are links to setup and load data
+https://docs.getdbt.com/guides/bigquery?step=2
+https://docs.getdbt.com/guides/bigquery?step=3
+
+
+# Create git remo
+1. Create git repo.
+  - existing dbt_fundamentals repo was used
+
+# Create initial dbt project
+2. Create a project 
+  dbt init jaffle_shop
+
+NOTE: creates a directory called jaffle_shop with the following: 
+dbt_project.yml
++ analysis (empty)
++ logs (empty)
++ macros 
+   /example
+     my_first_dbt_model.sql 
+     my_second_dbt_model.sql 
+     schema.yml
++ tests (empty)
+README.md
+
+# Setup a connection to data source 
+# 
+3. Need to setup connection details to BigQuery (credentials created and stored from above link)
+   This is done in a file called profiles located in ~/.dbt
+
+~/.dbt/profiles: 
+jaffle_shop:
+  outputs:
+    dev:
+      dataset: jaffle_shop
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      keyfile: <location where BigQuery JSON key file is located> 
+      location: US
+      method: service-account
+      priority: interactive
+      project: <GCP PROJECT ID>
+      threads: 4
+      type: bigquery
+  target: dev
+
+
+NOTE:  to test connectivity run:
+   dbt debug
+
+
+
+# Run sample project 
+#
+4. Do a test run of the sample project:  
+ dbt run
+
+NOTE: should show stages of run anc "Completed Successfully" on successful run
+
+
+# Build first mmodel 
+#
+4. build a new model under models directory
+models/customer.sql: 
+
+## v-------START HERE -------v
+with customers as (
+
+    select
+        id as customer_id,
+        first_name,
+        last_name
+
+    from `dbt-tutorial`.jaffle_shop.customers
+
+),
+
+orders as (
+
+    select
+        id as order_id,
+        user_id as customer_id,
+        order_date,
+        status
+
+    from `dbt-tutorial`.jaffle_shop.orders
+
+),
+
+customer_orders as (
+
+    select
+        customer_id,
+
+        min(order_date) as first_order_date,
+        max(order_date) as most_recent_order_date,
+        count(order_id) as number_of_orders
+
+    from orders
+
+    group by 1
+
+),
+
+final as (
+
+    select
+        customers.customer_id,
+        customers.first_name,
+        customers.last_name,
+        customer_orders.first_order_date,
+        customer_orders.most_recent_order_date,
+        coalesce(customer_orders.number_of_orders, 0) as number_of_orders
+
+    from customers
+
+    left join customer_orders using (customer_id)
+
+)
+
+select * from final
+
+## v-------END HERE -------v
+
+NOTE:  Models are simply SQL statements, no DDL or DML.  Notice the CTEs for cusotmers, orders, customer_orders
+      Dependencies betwee models are identified with {{ ref }} syntax
+
+Now run the updates: 
+ dbt run
+
+NOTE:  Tables / views should now be materialized in BigQuery
+
+
+
+
+
+# Change the way a model is materialized
+#
+5. By editing dbt_project.yml, you can change the way objects are materialized in the Data Source
+dbt_project.yml: 
+
+models:
+  jaffle_shop:
+    +materialized: table
+    example:
+      +materialized: view
+
+
+# Save and dbt run.   customers is now built as a table.  To override dbt_project.yml put the following 
+at the beggining of a models .sql file:
+models/customers.sql:
+
+{{
+  config(
+    materialized='view'
+  )
+}}
+
+with customers as (
+
+    select
+        id as customer_id
+        ...
+
+)
+
+NOTE: This now builds customers as a view.
+WARNING:  Since the customers object has changed from table to view need to run the following: 
+    dbt run --full-refresh
+
+This forces a full re-applly of materialization changes. 
+
+
+## Delete example models 
+MAP LAST HERE
+https://docs.getdbt.com/guides/manual-install?step=10
+
+
+
+.
