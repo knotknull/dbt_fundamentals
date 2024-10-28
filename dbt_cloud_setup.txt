@@ -1,5 +1,6 @@
 
-
+LAST HERE
+https://learn.getdbt.com/learn/course/dbt-fundamentals/set-up-dbt-cloud-55min/getting-started?page=2
 
 setup dbt cloud
 
@@ -20,4 +21,15 @@ https://docs.getdbt.com/docs/get-started/getting-started/getting-set-up/setting-
 
 #Load Data
 
+# BigQuery
+https://docs.getdbt.com/guides/bigquery?step=1
 
+# Databricks
+https://docs.getdbt.com/guides/databricks?step=3
+
+
+# Reshift
+https://docs.getdbt.com/guides/redshift?step=3
+
+# Snowflake
+https://docs.getdbt.com/docs/get-started/getting-started/getting-set-up/setting-up-snowflake#load-data

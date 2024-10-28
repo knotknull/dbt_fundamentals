@@ -1,0 +1,15 @@
+
+## Quickstart dbt for core
+https://docs.getdbt.com/guides/manual-install?step=4
+
+## Quickstart dbt for core
+https://docs.getdbt.com/guides/manual-install?step=4
+
+## Quickstart dbt Cloud and Redshift
+https://docs.getdbt.com/guides/redshift?step=1
+
+
+
+
+
+

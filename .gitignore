@@ -1,0 +1,4 @@
+*.pdf
+*.key
+dbt-fun.json
+/dbt_core/*
