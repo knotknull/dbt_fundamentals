@@ -181,9 +181,182 @@ WARNING:  Since the customers object has changed from table to view need to run 
 This forces a full re-applly of materialization changes. 
 
 
-## Delete example models 
-MAP LAST HERE
-https://docs.getdbt.com/guides/manual-install?step=10
+## Create models on models 
+can build up models on top of base .sql files:
+
+# models/stg_customers.sql:
+select
+    id as customer_id,
+    first_name,
+    last_name
+
+from `dbt-tutorial`.jaffle_shop.customers
+
+
+
+# models/stg_orders.sql:
+select
+    id as order_id,
+    user_id as customer_id,
+    order_date,
+    status
+
+from `dbt-tutorial`.jaffle_shop.orders
+
+
+# models/customers.sql:
+# this builds up the customers table by building up CTEs utilizing the {{ ref }} syntax (referral)
+# NOTE: Notice the use of CTEs for customers, orders, customer_orders
+# models/stg_orders.sql:
+
+with customers as (
+
+    select * from {{ ref('stg_customers') }}
+
+),
+
+orders as (
+
+    select * from {{ ref('stg_orders') }}
+
+),
+
+customer_orders as (
+
+    select
+        customer_id,
+
+        min(order_date) as first_order_date,
+        max(order_date) as most_recent_order_date,
+        count(order_id) as number_of_orders
+
+    from orders
+
+    group by 1
+
+),
+
+final as (
+
+    select
+        customers.customer_id,
+        customers.first_name,
+        customers.last_name,
+        customer_orders.first_order_date,
+        customer_orders.most_recent_order_date,
+        coalesce(customer_orders.number_of_orders, 0) as number_of_orders
+
+    from customers
+
+    left join customer_orders using (customer_id)
+
+)
+
+select * from final
+
+
+
+## Add tests to models
+## 
+Add a schema.yml file under the models directory 
+Tests can be added after the column name with the test types.
+Here the tests are unique, not_null and accepted values in a list: 
+
+
+# models/schema.yml: 
+....
+
+models:
+  - name: customers
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+...
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['placed', 'shipped', 'completed', 'return_pending', 'returned']
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+
+Run dbt test to confirm all tests passed
+
+In this case there was a failure because there is a null in my_first_dbt_model.id
+
+
+
+23:52:03  3 of 13 FAIL 1 not_null_my_first_dbt_model_id .................................. [FAIL 1 in 1.54s]
+23:52:08  Finished running 13 data tests in 0 hours 0 minutes and 7.09 seconds (7.09s).
+23:52:08  
+23:52:08  Completed with 1 error and 0 warnings:
+23:52:08  
+23:52:08  Failure in test not_null_my_first_dbt_model_id (models/example/schema.yml)
+23:52:08    Got 1 result, configured to fail if != 0
+23:52:08  
+23:52:08    compiled code at target/compiled/jaffle_shop/models/example/schema.yml/not_null_my_first_dbt_model_id.sql
+23:52:08  
+23:52:08  Done. PASS=12 WARN=0 ERROR=1 SKIP=0 TOTAL=13
+
+
+
+cat ./target/compiled/jaffle_shop/models/example/schema.yml/not_null_my_first_dbt_model_id.sql   
+
+select id
+from `dbt-fun-439917`.`jaffle_shop`.`my_first_dbt_model`
+where id is null
+
+
+
+## Add tests to models
+## 
+
+Can generate documentation by adding descripton: fields describing what a table or column does: 
+
+version: 2
+
+models:
+  - name: customers
+    description: One record per customer
+    columns:
+      - name: customer_id
+        description: Primary key
+        tests:
+          - unique
+          - not_null
+      - name: first_order_date
+        description: NULL when a customer has not yet placed an order.
+
+Create the documentation with the generate command: 
+dbt docs generate
+
+....
+00:01:17  Found 5 models, 13 data tests, 479 macros
+00:01:17  
+00:01:18  Concurrency: 4 threads (target='dev')
+00:01:18  
+00:01:19  Building catalog
+00:01:23  Catalog written to /data/archive/dbt/dbt_fundamentals/dbt_core/jaffle_shop/target/catalog.json
+
+
+Launch a website for the documenttion by docs server command:
+dbt docs serve
+
+(dbt_env) map@hexagon:/jaffle_shop/> dbt docs serve
+00:02:31  Running with dbt=1.8.8
+Serving docs at 8080
+To access from your browser, navigate to: http://localhost:8080
 
 
 
