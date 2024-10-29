@@ -1,0 +1,6 @@
+This will cover setting up dbt Clou dna Redshift for the getting started course:
+https://learn.getdbt.com/learn/course/dbt-fundamentals/set-up-dbt-cloud-55min/getting-started?page=2
+
+
+Here is the dbtCloud / Redshift quickstart: 
+https://docs.getdbt.com/guides/redshift?step=1
